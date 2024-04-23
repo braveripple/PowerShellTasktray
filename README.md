@@ -2,12 +2,10 @@
 
 ## 結局何で作ればいいのか
 
-PowerShellのタスクトレイ常駐プログラムはWindows PowerShellで作ること。
+可能な限りWindows PowerShellとPowerShell7の両方で動作するスクリプトを目指す。
 
-PowerShell CoreおよびPowreShell 7以降で動かすと変なエラーを吐く。
-
-* 文字コード：UTF-8 BOMにすること。
-* 改行コード：Windowsに倣ってCRLFでいいと思う。
+* 文字コード：UTF-8にする。
+* 改行コード：LFにする。
 
 ## プロンプト残る問題の解決
 
