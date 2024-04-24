@@ -13,7 +13,7 @@ $TERATERM_PATH = "C:\Program Files (x86)\teraterm\ttermpro.exe"
 $SERVER_FILE = "$PSScriptRoot/接続先.tsv"
 $SCRIPT_FILE = $MyInvocation.MyCommand.Path
 $EDITOR_PATH = "notepad.exe"
-$LOGDIR_PATH = "$Env:OneDriveConsumer\Documents\Logs\TeratermLog"
+$LOGDIR_PATH = "$PSScriptRoot/log"
 
 $mutex = New-Object System.Threading.Mutex($false, $MUTEX_NAME);
 
@@ -21,30 +21,45 @@ $mutex = New-Object System.Threading.Mutex($false, $MUTEX_NAME);
 function displayAccessPoint {
     try {
         # TSVファイルから接続先情報を取得
-        $severList = Import-Csv -Path $SERVER_FILE -Delimiter "`t" -Encoding utf8
+        $severList = Import-Csv -Path $SERVER_FILE -Delimiter "`t" -Encoding utf8 | 
+            ForEach-Object -Begin{ $i=1 } { $_ | Add-Member -Name Id -MemberType NoteProperty -Value ("{0:00}" -f $i++); $_ }
+
         # 選択画面表示。パスワードは画面に表示しない。
-        $select = $SeverList | Select-Object User, Host, Kanji, Macro, Memo | Out-GridView -OutputMode Multiple -Title "接続先の選択"
+        $select = $SeverList | Select-Object Id, User, Host, Kanji, Macro, Memo | Out-GridView -OutputMode Multiple -Title "接続先の選択"
         $select | ForEach-Object {
             $tmp = $_
-            Write-Host $_
-            $serverData = $severList | Where-Object { ($_.Host -eq $tmp.Host) -and ($_.User -eq $tmp.User) } | Select-Object -First 1
-            $macroPath = "$PSScriptRoot\$($serverData.Macro)"
-            $macroArgs = ""
-            if (Test-Path $macroPath -PathType Leaf) {
-                $tmpMacroPath = "$macroPath.$($serverData.User).ttl"
-                (Get-Content $macroPath) -replace "<USERNAME>","$($serverData.User)" > $tmpMacroPath
-                $macroArgs = "/M=$tmpMacroPath"
+            Write-Host $tmp
+            $server = $severList | 
+                Where-Object { $_.Id -eq $tmp.Id } | Select-Object -First 1
+            Write-Host $server
+
+            $arguments += "/ssh $($server.Host) /2 /auth=password "
+            $arguments += "/user=$($server.User) /passwd=$($server.Password) "
+            $arguments += "/L=$LOGDIR_PATH\&h_%Y%m%d_%H%M%S.log "
+            $arguments += "/KR=$($server.Kanji) /KT=$($server.Kanji) "
+
+            # マクロ設定追加
+            if ($server.Macro -ne "") {
+                $macroPath = "$PSScriptRoot\$($server.Macro)"
+                if (Test-Path $macroPath -PathType Leaf) {
+                    $tmpMacroPath = "$macroPath.$($server.User).ttl"
+                    (Get-Content $macroPath) -replace "<USERNAME>","$($server.User)" > $tmpMacroPath
+                    $arguments += " /M=$tmpMacroPath "
+                }    
             }
-            Write-Host $serverData
-            & $TERATERM_PATH `
-            /ssh "$($serverData.Host)" /2 /auth=password `
-            /user="$($serverData.User)" /passwd="$($serverData.Password)" /L="$LOGDIR_PATH\&h_%Y%m%d_%H%M%S.log" `
-            /KR="$($serverData.Kanji)" /KT="$($serverData.Kanji)" `
-            "$macroArgs"
+            
+            # ログ出力ディレクトリがなかったら作成する
+            if (!(Test-Path -LiteralPath $LOGDIR_PATH -PathType Container)) {
+                New-Item -ItemType Directory $LOGDIR_PATH
+            }
+
+            Start-Process $TERATERM_PATH -ArgumentList $arguments
+
             Start-Sleep 1
         }
     }
     catch {
+        Write-Error $_.ToString();
         $notifyIcon.BalloonTipText = $_.ToString();
         $notifyIcon.ShowBalloonTip(5000);
     }
@@ -129,7 +144,6 @@ function displayTooltip {
         Write-Host "  run end"
 
         $notifyIcon.Visible = $false;
-
 
     }
     finally {
