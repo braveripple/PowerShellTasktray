@@ -1,11 +1,12 @@
 # PowerShellTasktray
 
-## 結局何で作ればいいのか
+PowerShellで作った常駐プログラム置き場
 
-可能な限りWindows PowerShellとPowerShell7の両方で動作するスクリプトを目指す。
+可能な限りWindows PowerShell/PowerShell7以降の両方で動くように以下の対応をしている。
 
-* 文字コード：UTF-8にする。
-* 改行コード：LFにする。
+* スクリプトをUTF8BOM付きで保存
+  
+他何かあったら書く
 
 ## プロンプト残る問題の解決
 
