@@ -1,0 +1,18 @@
+[
+  {
+    "User": "ripple",
+    "Host": "localhost",
+    "Password": "${Env:ServerPassword}",
+    "Kanji": "UTF8",
+    "Macro": "",
+    "Memo": "めも"
+  },
+  {
+    "User": "ripple",
+    "Host": "localhost",
+    "Password": "${Env:ServerPassword}",
+    "Kanji": "UTF8",
+    "Macro": "nothing.ttl",
+    "Memo": "めも"
+  }
+]

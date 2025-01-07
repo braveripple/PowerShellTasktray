@@ -1,7 +1,6 @@
-<###############################################################
+﻿<###############################################################
 Tera Term ランチャー
 ###############################################################>
-#Requires -Version 3
 
 using namespace System.Management.Automation
 Add-Type -AssemblyName System.Windows.Forms;
@@ -10,7 +9,7 @@ $APPLICATION_NAME = "Tera Term ランチャー"
 $MUTEX_NAME = 'CE634DBE-31E2-4E65-838A-11CF22BDBBC4' + $APPLICATION_NAME;
 
 $TERATERM_PATH = "C:\Program Files (x86)\teraterm\ttermpro.exe"
-$SERVER_FILE = "$PSScriptRoot/接続先.tsv"
+$SERVER_FILE = "$PSScriptRoot/接続先.json"
 $SCRIPT_FILE = $MyInvocation.MyCommand.Path
 $EDITOR_PATH = "notepad.exe"
 $LOGDIR_PATH = "$PSScriptRoot/log"
@@ -20,16 +19,34 @@ $mutex = New-Object System.Threading.Mutex($false, $MUTEX_NAME);
 # 接続先の選択画面を開く
 function displayAccessPoint {
     try {
-        # TSVファイルから接続先情報を取得
-        $severList = Import-Csv -Path $SERVER_FILE -Delimiter "`t" -Encoding utf8 | 
-            ForEach-Object -Begin{ $i=1 } { $_ | Add-Member -Name Id -MemberType NoteProperty -Value ("{0:00}" -f $i++); $_ }
-
+        # JSONまたはTSVファイルから接続先情報を取得
+        if ((Get-Item -LiteralPath $SERVER_FILE).Extension.ToLower() -eq ".json") {
+            $serverList = Get-Content -LiteralPath $SERVER_FILE -Encoding utf8 | ConvertFrom-Json
+        } else {
+            $serverList = Import-Csv -LiteralPath $SERVER_FILE -Delimiter "`t" -Encoding utf8;
+        }
+        
+        if ($serverList.Length -gt 0) {
+            $columns = $serverList[0] | Get-Member -MemberType NoteProperty | Select-Object -ExpandProperty Name
+            $i = 1            
+            foreach ($server in $serverList) {
+                # 環境変数を値に変換する
+                foreach ($column in $columns) {
+                    $server."$column" = [regex]::Replace($server."$column", '\${?Env:([^}]+)}?', { $(get-item "Env:$($args.Groups[1].Value)").Value })
+                }
+                # ID列を追加する
+                $server | Add-Member -Name Id -MemberType NoteProperty -Value ("{0:00}" -f $i++)
+            }
+        }
         # 選択画面表示。パスワードは画面に表示しない。
-        $select = $SeverList | Select-Object Id, User, Host, Kanji, Macro, Memo | Out-GridView -OutputMode Multiple -Title "接続先の選択"
+        $select = $serverList | 
+            Select-Object Id, User, Host, Kanji, Macro, Memo | 
+            Out-GridView -OutputMode Multiple -Title "接続先の選択"
+
         $select | ForEach-Object {
             $tmp = $_
             Write-Host $tmp
-            $server = $severList | 
+            $server = $serverList | 
                 Where-Object { $_.Id -eq $tmp.Id } | Select-Object -First 1
             Write-Host $server
 

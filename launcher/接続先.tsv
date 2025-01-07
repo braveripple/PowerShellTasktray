@@ -1,2 +1,3 @@
 User	Host	Password	Kanji	Macro	Memo
-ripple	localhost	xxxxxxxx	UTF8	nothing.ttl	めも
+ripple	localhost	${Env:ServerPassword}	UTF8		めも
+ripple	localhost	${Env:ServerPassword}	UTF8	nothing.ttl	めも
