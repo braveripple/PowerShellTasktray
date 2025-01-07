@@ -91,6 +91,7 @@ function displayServerFile {
         $notifyIcon.ShowBalloonTip(5000);
     }
 }
+<# 
 function displayScriptFile {
     try {
         & $EDITOR_PATH $SCRIPT_FILE
@@ -100,7 +101,7 @@ function displayScriptFile {
         $notifyIcon.ShowBalloonTip(5000);
     }
 }
-
+#>
 function displayTooltip {
     try {
         Write-Host "  make context start"
@@ -136,22 +137,25 @@ function displayTooltip {
         Write-Host "  set right click event start"
         $menuItem_exit = [System.Windows.Forms.ToolStripMenuItem]@{ Text = 'Exit' };
         $menuItem_editServerFile = [System.Windows.Forms.ToolStripMenuItem]@{ Text = '接続先を編集' };
-        $menuItem_editScriptFile = [System.Windows.Forms.ToolStripMenuItem]@{ Text = 'スクリプトを編集' };
+#        $menuItem_editScriptFile = [System.Windows.Forms.ToolStripMenuItem]@{ Text = 'スクリプトを編集' };
         
         $notifyIcon.ContextMenuStrip = New-Object System.Windows.Forms.ContextMenuStrip;
         [void]$notifyIcon.ContextMenuStrip.Items.Add($menuItem_editServerFile);
-        [void]$notifyIcon.ContextMenuStrip.Items.Add($menuItem_editScriptFile);
+#        [void]$notifyIcon.ContextMenuStrip.Items.Add($menuItem_editScriptFile);
         [void]$notifyIcon.ContextMenuStrip.Items.Add($menuItem_exit);
 
         $menuItem_exit.add_Click( {
             $appContext.ExitThread();
         });
+
         $menuItem_editServerFile.add_Click( {
             displayServerFile
         });
+<#        
         $menuItem_editScriptFile.add_Click( {
             displayScriptFile
         });
+#>
         Write-Host "  set right click event end"
         $notifyIcon.Visible = $true;
 
