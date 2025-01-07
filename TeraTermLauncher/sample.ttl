@@ -1,0 +1,4 @@
+wait '<USERNAME>'
+sendln 'date'
+wait '<USERNAME>'
+sendln 'mkdir -p ~/work.<USERNAME>/'

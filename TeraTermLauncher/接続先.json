@@ -5,14 +5,14 @@
     "Password": "${Env:ServerPassword}",
     "Kanji": "UTF8",
     "Macro": "",
-    "Memo": "めも"
+    "Memo": ""
   },
   {
     "User": "ripple",
     "Host": "localhost",
     "Password": "${Env:ServerPassword}",
     "Kanji": "UTF8",
-    "Macro": "nothing.ttl",
-    "Memo": "めも"
+    "Macro": "sample.ttl",
+    "Memo": "マクロを実行します"
   }
 ]
