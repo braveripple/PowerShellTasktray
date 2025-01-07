@@ -11,8 +11,10 @@ $MUTEX_NAME = 'CE634DBE-31E2-4E65-838A-11CF22BDBBC4' + $APPLICATION_NAME;
 $TERATERM_PATH = "C:\Program Files (x86)\teraterm\ttermpro.exe"
 $SERVER_FILE = "$PSScriptRoot/接続先.json"
 $SCRIPT_FILE = $MyInvocation.MyCommand.Path
+$SCRIPT_NAME = [System.IO.Path]::GetFileNameWithoutExtension($SCRIPT_FILE)
 $EDITOR_PATH = "notepad.exe"
 $LOGDIR_PATH = "$PSScriptRoot/log"
+$TMPDIR_PATH = "${Env:TEMP}/$SCRIPT_NAME"
 
 $mutex = New-Object System.Threading.Mutex($false, $MUTEX_NAME);
 
@@ -59,16 +61,22 @@ function displayAccessPoint {
             if ($server.Macro -ne "") {
                 $macroPath = "$PSScriptRoot\$($server.Macro)"
                 if (Test-Path $macroPath -PathType Leaf) {
-                    $tmpMacroPath = "$macroPath.$($server.User).ttl"
-                    (Get-Content $macroPath) -replace "<USERNAME>","$($server.User)" > $tmpMacroPath
+                    $tmpMacroPath = "$TMPDIR_PATH/$($server.Macro).$($server.User).ttl"
+                    New-Item -ItemType Directory $TMPDIR_PATH -Force
+                    # マクロ内の特定キーワードを変換
+                    (Get-Content $macroPath -Encoding utf8) -replace "<USERNAME>","$($server.User)" | Out-File -LiteralPath $tmpMacroPath -Encoding utf8
+                    # Windows PowerShellの場合、Out-Fileでutf8を指定しても強制的にBOMが付くのでBOM無しに変換する
+                    if ($PSVersionTable.PSVersion.Major -lt 6) {
+                        $bytes = Get-Content -LiteralPath $tmpMacroPath -Raw -Encoding Default |
+                            ForEach-Object { [Text.Encoding]::UTF8.GetBytes($_) }
+                        $bytes | Set-Content -LiteralPath $tmpMacroPath -Encoding Byte
+                    }
                     $arguments += " /M=$tmpMacroPath "
-                }    
+                }
             }
             
-            # ログ出力ディレクトリがなかったら作成する
-            if (!(Test-Path -LiteralPath $LOGDIR_PATH -PathType Container)) {
-                New-Item -ItemType Directory $LOGDIR_PATH
-            }
+            # ログ出力ディレクトリの作成
+            New-Item -ItemType Directory $LOGDIR_PATH -Force
 
             Start-Process $TERATERM_PATH -ArgumentList $arguments
 
