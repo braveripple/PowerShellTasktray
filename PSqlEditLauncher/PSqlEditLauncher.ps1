@@ -8,8 +8,8 @@ PSqlEditランチャー
 
 Add-Type -AssemblyName System.Windows.Forms;
 
-$APPLICATION_NAME = "PSqlEdit ランチャー"
-$MUTEX_NAME = 'CE634DBE-31E2-4E65-838A-11CF22BDBBC4' + $APPLICATION_NAME;
+$APPLICATION_NAME = "PSqlEditランチャー"
+$MUTEX_NAME = '9766e6ad-08b2-42d1-af43-bce975cd6ec6' + $APPLICATION_NAME;
 
 if ([string]::IsNullOrWhiteSpace($DBConfigFile)) {
     $DBConfigFile = "$PSScriptRoot/接続先.tsv"
