@@ -1,0 +1,18 @@
+[
+  {
+    "User": "postgres",
+    "Password": "${Env:DBPassword}",
+    "DBName": "primarydb",
+    "Host": "localhost",
+    "PortNo": "5432",
+    "Memo": "プライマリDB"
+  },
+  {
+    "User": "postgres",
+    "Password": "${Env:DBPassword}",
+    "DBName": "secondarydb",
+    "Host": "localhost",
+    "PortNo": "5432",
+    "Memo": "セカンダリDB"
+  }
+]
