@@ -1,4 +1,4 @@
-param (
+﻿param (
     [string] $USER,
     [string] $PASSWORD,
     [string] $DB_NAME,
@@ -9,7 +9,13 @@ param (
 add-type -AssemblyName microsoft.VisualBasic
 add-type -AssemblyName System.Windows.Forms
 
-$PSQLEDIT_PATH = "C:\app\psqledit_5_32\psqledit.exe"
+if (Get-Command "psqledit.exe" -ErrorAction SilentlyContinue) {
+    $PSqlEditPath = (Get-Command "psqledit.exe").Source
+    Write-Debug "psqledit.exe:$PSqlEditPath"
+} else {
+    Write-Error "psqledit.exeのディレクトリが環境変数PATHに存在しません。"
+    exit 1
+}
 
 $now = Get-Date
 
@@ -33,12 +39,12 @@ Set-ItemProperty $REG_PATH -Name "PORT-CUR" -Value $PORT_NO
 Set-ItemProperty $REG_PATH -Name "PASSWD-0" -Value ""
 
 # アプリケーションを起動
-Start-Process -FilePath $PSQLEDIT_PATH
+Start-Process -FilePath $PSqlEditPath
 
 # 対象プロセスが見つかるまで待機
 do {
     $processes = Get-Process psqledit | Where-Object {
-        $_.StartTime -ge $now -and $_.Path -eq $PSQLEDIT_PATH
+        $_.StartTime -ge $now -and $_.Path -eq $PSqlEditPath
     }
     Start-Sleep 0.5
 } while ($null -eq $processes)
