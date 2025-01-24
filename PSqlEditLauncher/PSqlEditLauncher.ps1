@@ -1,28 +1,35 @@
+using namespace System.Management.Automation
+param (
+    [string] $DBConfigFile
+)
 <###############################################################
-PSqlEdit ランチャー
+PSqlEditランチャー
 ###############################################################>
 
-using namespace System.Management.Automation
 Add-Type -AssemblyName System.Windows.Forms;
 
 $APPLICATION_NAME = "PSqlEdit ランチャー"
 $MUTEX_NAME = 'CE634DBE-31E2-4E65-838A-11CF22BDBBC4' + $APPLICATION_NAME;
 
-$DB_LIST_FILE = "$PSScriptRoot/接続先.tsv"
-$SCRIPT_FILE = $MyInvocation.MyCommand.Path
-$SCRIPT_NAME = [System.IO.Path]::GetFileNameWithoutExtension($SCRIPT_FILE)
-$EDITOR_PATH = "notepad.exe"
+if ([string]::IsNullOrWhiteSpace($DBConfigFile)) {
+    $DBConfigFile = "$PSScriptRoot/接続先.tsv"
+}
+if (!(Test-Path -LiteralPath $DBConfigFile -PathType Leaf)) {
+    Write-Error "接続先設定ファイルが存在しません：$DBConfigFile"
+    exit 1
+}
 
+$EDITOR_PATH = "notepad.exe"
 $mutex = New-Object System.Threading.Mutex($false, $MUTEX_NAME);
 
 # 接続先の選択画面を開く
 function displayAccessPoint {
     try {
         # JSONまたはTSVファイルから接続先情報を取得
-        if ((Get-Item -LiteralPath $DB_LIST_FILE).Extension.ToLower() -eq ".json") {
-            $dbList = Get-Content -LiteralPath $DB_LIST_FILE -Encoding utf8 | ConvertFrom-Json
+        if ((Get-Item -LiteralPath $DBConfigFile).Extension.ToLower() -eq ".json") {
+            $dbList = Get-Content -LiteralPath $DBConfigFile -Encoding utf8 | ConvertFrom-Json
         } else {
-            $dbList = Import-Csv -LiteralPath $DB_LIST_FILE -Delimiter "`t" -Encoding utf8;
+            $dbList = Import-Csv -LiteralPath $DBConfigFile -Delimiter "`t" -Encoding utf8;
         }
         
         if ($dbList.Length -gt 0) {
@@ -61,9 +68,9 @@ function displayAccessPoint {
     }
 
 }
-function displayDBFile {
+function displayDBConfigFile {
     try {
-        & $EDITOR_PATH $DB_LIST_FILE
+        & $EDITOR_PATH $DBConfigFile
     }
     catch {
         $notifyIcon.BalloonTipText = $_.ToString();
@@ -115,11 +122,11 @@ function displayTooltip {
         ####################################################
         Write-Debug "  set right click event start"
         $menuItem_exit = [System.Windows.Forms.ToolStripMenuItem]@{ Text = 'Exit' };
-        $menuItem_editdbFile = [System.Windows.Forms.ToolStripMenuItem]@{ Text = '接続先を編集' };
+        $menuItem_editDBConfigFile = [System.Windows.Forms.ToolStripMenuItem]@{ Text = '接続先を編集' };
         $menuItem_openScriptDir = [System.Windows.Forms.ToolStripMenuItem]@{ Text = 'プログラムの場所を開く' };
         
         $notifyIcon.ContextMenuStrip = New-Object System.Windows.Forms.ContextMenuStrip;
-        [void]$notifyIcon.ContextMenuStrip.Items.Add($menuItem_editdbFile);
+        [void]$notifyIcon.ContextMenuStrip.Items.Add($menuItem_editDBConfigFile);
         [void]$notifyIcon.ContextMenuStrip.Items.Add($menuItem_openScriptDir);
         [void]$notifyIcon.ContextMenuStrip.Items.Add($menuItem_exit);
 
@@ -127,8 +134,8 @@ function displayTooltip {
             $appContext.ExitThread();
         });
 
-        $menuItem_editdbFile.add_Click( {
-            displayDBFile
+        $menuItem_editDBConfigFile.add_Click( {
+            displayDBConfigFile
         });
 
         $menuItem_openScriptDir.add_Click( {
@@ -162,11 +169,6 @@ function hiddenTaskber {
 }
 
 try {
-    Write-Host $SCRIPT_FILE
-    if (!(Test-Path -LiteralPath $DB_LIST_FILE -PathType Leaf)) {
-        Write-Error "接続先設定ファイルが存在しません：$DB_LIST_FILE"
-        exit 1
-    }
     # タイトルバーの書き換え
     $Host.UI.RawUI.WindowTitle = $APPLICATION_NAME
     # 多重起動チェック
