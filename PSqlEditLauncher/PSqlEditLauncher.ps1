@@ -1,4 +1,4 @@
-﻿<###############################################################
+<###############################################################
 PSqlEdit ランチャー
 ###############################################################>
 
@@ -44,10 +44,10 @@ function displayAccessPoint {
 
         $select | ForEach-Object {
             $tmp = $_
-            Write-Host $tmp
+            Write-Debug $tmp
             $db = $dbList | 
                 Where-Object { $_.Id -eq $tmp.Id } | Select-Object -First 1
-            Write-Host $db
+            Write-Debug $db
 
             .\PSqlEditLoginW.ps1 -USER $db.User -PASSWORD $db.Password -DB_NAME $db.DBName -HOST_NAME $db.Host -PORT_NO $db.PortNo
 
@@ -83,14 +83,14 @@ function openScriptDir {
 
 function displayTooltip {
     try {
-        Write-Host "  make context start"
+        Write-Debug "  make context start"
         # コンテキスト作成
         $appContext = New-Object System.Windows.Forms.ApplicationContext;
-        Write-Host "  make context end"
+        Write-Debug "  make context end"
         ####################################################
         # 通知アイコン作成
         ####################################################
-        Write-Host "  set icon start"
+        Write-Debug "  set icon start"
         # TeraTermのアイコンを設定する
         $icon = [System.Drawing.Icon]::ExtractAssociatedIcon("C:\Program Files (x86)\teraterm\ttermpro.exe")
         $notifyIcon = [System.Windows.Forms.NotifyIcon]@{
@@ -98,22 +98,22 @@ function displayTooltip {
             Text           = $APPLICATION_NAME;
             BalloonTipIcon = 'None';
         };
-        Write-Host "  set icon end"
+        Write-Debug "  set icon end"
 
         ####################################################
         # アイコン左クリック時のイベントを設定
         ####################################################
-        Write-Host "  set left click event start"
+        Write-Debug "  set left click event start"
         $notifyIcon.add_Click( {
                 if ($_.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
                     displayAccessPoint
                 }
             });
-        Write-Host "  set left click event end"
+        Write-Debug "  set left click event end"
         ####################################################
         # アイコン右クリック時のコンテキストメニューの設定
         ####################################################
-        Write-Host "  set right click event start"
+        Write-Debug "  set right click event start"
         $menuItem_exit = [System.Windows.Forms.ToolStripMenuItem]@{ Text = 'Exit' };
         $menuItem_editdbFile = [System.Windows.Forms.ToolStripMenuItem]@{ Text = '接続先を編集' };
         $menuItem_openScriptDir = [System.Windows.Forms.ToolStripMenuItem]@{ Text = 'プログラムの場所を開く' };
@@ -135,21 +135,21 @@ function displayTooltip {
             openScriptDir
         });
 
-        Write-Host "  set right click event end"
+        Write-Debug "  set right click event end"
         $notifyIcon.Visible = $true;
 
         # タスクトレイの表示
-        Write-Host "  run start"
+        Write-Debug "  run start"
         [void][System.Windows.Forms.Application]::Run($appContext);
-        Write-Host "  run end"
+        Write-Debug "  run end"
 
         $notifyIcon.Visible = $false;
 
     }
     finally {
-        Write-Host "  dispose start"
+        Write-Debug "  dispose start"
         $notifyIcon.Dispose();
-        Write-Host "  release mutex start"
+        Write-Debug "  release mutex start"
         $mutex.ReleaseMutex();
     }
 }
@@ -171,12 +171,12 @@ try {
     $Host.UI.RawUI.WindowTitle = $APPLICATION_NAME
     # 多重起動チェック
     if ($mutex.WaitOne(0, $false)) {
-        Write-Host "hiddenTaskber START"
+        Write-Debug "hiddenTaskber START"
         hiddenTaskber
-        Write-Host "hiddenTaskber END"
-        Write-Host "displayTooltip START"
+        Write-Debug "hiddenTaskber END"
+        Write-Debug "displayTooltip START"
         displayTooltip
-        Write-Host "displayTooltip END"
+        Write-Debug "displayTooltip END"
         
         $retcode = 0;
     }
