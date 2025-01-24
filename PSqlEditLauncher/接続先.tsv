@@ -1,4 +1,3 @@
 User	Password	DBName	Host	PortNo	Memo
 postgres	${Env:DBPassword}	primarydb	localhost	5432	プライマリDB
 postgres	${Env:DBPassword}	secondarydb	localhost	5432	セカンダリDB
-
