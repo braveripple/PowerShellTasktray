@@ -99,7 +99,7 @@ function displayTooltip {
         ####################################################
         Write-Debug "  set icon start"
         # TeraTermのアイコンを設定する
-        $icon = [System.Drawing.Icon]::ExtractAssociatedIcon("C:\Program Files (x86)\teraterm\ttermpro.exe")
+        $icon = [System.Drawing.Icon]::ExtractAssociatedIcon((Get-Command powershell.exe).Source)
         $notifyIcon = [System.Windows.Forms.NotifyIcon]@{
             Icon           = $icon;
             Text           = $APPLICATION_NAME;
