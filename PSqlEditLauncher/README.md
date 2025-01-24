@@ -1,0 +1,2 @@
+# PSqlEditランチャー
+PSqlEditの起動と接続処理をPowerShellで担う常駐スクリプト。
