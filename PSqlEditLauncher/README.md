@@ -7,3 +7,5 @@ PSqlEdit
 
 ## PSqlEditLoginW.ps1
 ## PSqlEditLauncher.ps1
+## PSqlEditExport.ps1
+
