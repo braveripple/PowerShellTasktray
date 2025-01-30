@@ -8,7 +8,6 @@ $connect_info = foreach($i in 0..$($count-1)) {
         @{ Name = "DBName"; Expression = { $_."DBNAME-$i" } }, `
         @{ Name = "Host"; Expression = { $_."HOST-$i" } }, `
         @{ Name = "PortNo"; Expression = { $_."PORT-$i" } }, `
-#        @{ Name = "Option"; Expression = { $_."OPTION-$i" } }, `
         @{ Name = "Memo"; Expression = { $_."CONNECT-NAME-$i" } }
 }
 $connect_info | Export-Csv -LiteralPath "接続先_$(Get-Date -Format FileDateTime).tsv" -Delimiter "`t" -UseQuotes Never
